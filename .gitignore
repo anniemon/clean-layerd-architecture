@@ -1,0 +1,7 @@
+.idea/*
+.coverage/*
+node_modules/*
+dist/*
+test-report.xml
+.vscode/*
+.DS_Store
