@@ -5,8 +5,6 @@
   - (Enrollment - User - Lecture = 1 - 1 - 1)
   - 하나의 유저는 하나의 강의에 하나의 수강 신청을 갖는다 (제약 조건)
 - Lecture : Enrollment = 1 : N
-- Enrollment: EnrollmentHistory = 1 : M
-  - Enrollment 상태 변경 추적용
 
 ## Event
 
