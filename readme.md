@@ -9,14 +9,9 @@
 ## Event
 
 - 수강 신청
-  - Lecture의 slot 확인
-  - Enrollment 생성(PENDING? 상태)
-  - 낙관적 락으로 구현해보자..
-  - Lecture slot 확인
-  - Lecture slot 차감
-    - 이때 slot이 다 차버렸으면 (남은 slot이 0이면)
-  - Enrollment 상태를 다시 변경하고(CANCELED) **롤백**
-  - 성공하면(slot이 0보다 크면) Enrollment 상태를 COMPLETED로 변경
+  - Lecture의 slot 차감(낙관적 락)
+    - 이때 slot이 0이면 에러
+  - 성공하면(slot이 0보다 크면) Enrollment 상태를 ENROLLED로 생성
 
 ## Schema
 
@@ -33,55 +28,93 @@
   - title
   - subtitle
   - description
-  - slot
-    - 30 by default
-  - isAvailable
+  - slot(30 by default)
   - createdAt
   - updatedAt
   - deletedAt
 - Enrollment
-  - id(pk)
   - lectureId
   - userId
   - state(enum)
-    - PENDING, ENROLLED, CANCELED
+    - ENROLLED만 사용 중
   - createdAt
   - updatedAt
   - deletedAt
-- EnrollmentHistory (??)
-  - enrollmentId
-  - from_state
-  - to_state
-  - updatedAt
+  - unique index: lectureId - userId
 
 ## API
 
 - POST /enrollments
-  - Parameter:
-    - body:
-      - ...lecture
-      - userId
-      - enrollmentId
+  - body:
+    - userId
+    - lectureId
   - Response:
     - status: 201
-    - message: "Success"
+    - example:
+      ```json
+      {
+        "userId": 13,
+        "lectureId": 1,
+        "status": "ENROLLED",
+        "deletedAt": null,
+        "id": "071f619c-0ff7-41b5-83cf-3dfaed1286f7",
+        "createdAt": "2024-10-05T11:07:14.000Z",
+        "updatedAt": "2024-10-05T11:07:14.000Z"
+      }
+      ```
   - Error:
-    - status: 422 ? 429?
-    - message: "No remain slots"
-- GET /enrollments?userId=:userId&state=ENROLLED
+      - 중복 수강 신청 시
+        - status: 400
+        - message: "Duplicated enrollment"
+      - 수강 신청 실패 시(슬롯 0)
+        - status: 500
+        - message: "Enrollment failed"
+   
+- GET /enrollments
   - Parameter:
     - query:
       - userId
+      - status(ENROLLED)
   - Response:
     - status: 200
-    - type: array
-    - example: {data: [{enrollment1, ...lecture1}, {enrollment2, ...lecture2}]}
-- GET /lectures/:state
+    - example:
+      ```json
+      {
+        "enrollments": [
+          {
+            "id": "29b24090-beb3-473e-af3c-809d65e21ce9",
+            "status": "ENROLLED",
+            "createdAt": "2024-10-05T10:59:15.000Z",
+            "updatedAt": "2024-10-05T10:59:15.000Z",
+            "deletedAt": null
+          }
+        ]
+      }
+      ```
+
+- GET /lectures/available
   - Parameter:
-    - path:
-      - state:
-        - type: enum
+    - query:
+      - date:
+        - type: string(YYYY-MM-DD)
   - Response:
     - status: 200
     - type: array
-    - example: {data: [{...lecture}]}
+    - example:
+      ```json
+      [
+        {
+          "id": "1",
+          "date": "2024-10-05",
+          "faculty": "bazFaculty0",
+          "title": "foo0",
+          "subtitle": "baz0",
+          "description": "bar0",
+          "slot": 30,
+          "version": 1,
+          "createdAt": "2024-10-05T10:56:07.953Z",
+          "updatedAt": "2024-10-05T10:56:07.953Z",
+          "deletedAt": null
+        }
+      ]
+      ```
