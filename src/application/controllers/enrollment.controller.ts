@@ -23,10 +23,12 @@ export class EnrollmentController {
   @Post()
   async enrollLecture(@Body() body: EnrollmentDTO) {
     const { userId, lectureId } = body;
-    const result = await this.enrollmentFacade.enrollLectureWithRetry(
+
+    const status = await this.enrollmentFacade.enrollLectureWithRetry(
       userId,
       lectureId,
     );
-    return result;
+
+    return { status };
   }
 }

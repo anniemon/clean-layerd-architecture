@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { EnrollmentStatus } from '@domain/enums';
 import { EnrollmentTypeOrmRepository } from '@infrastructure/typeorm/repositories/enrollment.repository';
 import { LectureTypeOrmRepository } from '@infrastructure/typeorm/repositories/lecture.repository';
@@ -11,6 +11,7 @@ export class EnrollmentService {
     @Inject(LectureTypeOrmRepository)
     private readonly lectureRepository: LectureTypeOrmRepository,
   ) {}
+
   async findUserEnrollments(userId: string, status: EnrollmentStatus.ENROLLED) {
     const enrollments = await this.enrollmentRepository.findAllByUserIdStatus(
       userId,
@@ -19,21 +20,36 @@ export class EnrollmentService {
     return enrollments;
   }
 
-  async updateEnrollmentWithIdStatus(
-    enrollmentId: string,
-    { status: EnrollmentStatus },
-  ) {
+  async updateEnrollmentStatusWithUserIdLectureId({
+    userId,
+    lectureId,
+    status,
+  }: {
+    userId: string;
+    lectureId: string;
+    status: EnrollmentStatus;
+  }) {
     const enrollment =
-      await this.enrollmentRepository.updateEnrollmentWithIdStatus(
-        enrollmentId,
-        EnrollmentStatus,
+      await this.enrollmentRepository.updateEnrollmentStatusWithUserIdLectureId(
+        {
+          userId,
+          lectureId,
+          status,
+        },
       );
     return enrollment;
   }
 
-  async createEnrollment(enrollment: any) {
-    const newEnrollment =
-      await this.enrollmentRepository.createEnrollment(enrollment);
-    return newEnrollment;
+  async createEnrollment(userId: string, lectureId: string) {
+    try {
+      const newEnrollment = await this.enrollmentRepository.createEnrollment(
+        userId,
+        lectureId,
+      );
+      console.log(newEnrollment, 'enrollment');
+      return newEnrollment;
+    } catch (error) {
+      throw new BadRequestException('Duplicated enrollment');
+    }
   }
 }

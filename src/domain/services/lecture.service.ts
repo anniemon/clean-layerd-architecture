@@ -18,18 +18,10 @@ export class LectureService {
     return this.lectureRepository.getAvailableSlots(lectureId);
   }
 
-  async decreaseAvailableSlotsWithVersion(
-    lectureId: string,
-    lectureVersion: number,
-  ) {
-    try {
-      return this.lectureRepository.decreaseAvailableSlotsWithVersion(
-        lectureId,
-        lectureVersion,
-      );
-    } catch (error) {
-      throw new OptimisticLockVersionMismatchError();
-    }
+  async decreaseAvailableSlotsWithVersion(lectureId: string) {
+    const result =
+      await this.lectureRepository.decreaseAvailableSlotsWithVersion(lectureId);
+    return result;
   }
 
   async isLectureFull(lectureId: string): Promise<boolean> {

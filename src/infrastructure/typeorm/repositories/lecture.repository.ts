@@ -27,17 +27,25 @@ export class LectureTypeOrmRepository
     return lecture.slot;
   }
 
-  async decreaseAvailableSlotsWithVersion(
-    lectureId: string,
-    lectureVersion: number,
-  ) {
-    // TODO: add retry logic
-    return await this.createQueryBuilder()
+  async decreaseAvailableSlotsWithVersion(lectureId: string) {
+    const result = await this.createQueryBuilder()
       .update(Lecture)
-      .set({ slot: () => 'slot - 1' })
+      .set({ slot: () => 'slot - 1', version: () => 'version + 1' })
       .where('id = :lectureId', { lectureId })
-      .andWhere('version = :version', { version: lectureVersion }) // 버전 검증
+      .andWhere('slot > 0')
+      .andWhere((qb) => {
+        const subQuery = this.createQueryBuilder('lecture')
+          .select('lecture.version')
+          .where('lecture.id = :lectureId')
+          .getQuery();
+        return `version = (${subQuery})`;
+      })
       .execute();
+
+    if (result.affected === 0) {
+      throw new Error('no available slot');
+    }
+    return result;
   }
 
   async isLectureFull(lectureId: string): Promise<boolean> {

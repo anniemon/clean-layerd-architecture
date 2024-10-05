@@ -2,13 +2,18 @@ import { Enrollment } from '@domain/entities';
 import { EnrollmentStatus } from '@domain/enums';
 
 export interface IEnrollmentRepository {
-  createEnrollment(enrollment: Enrollment): Promise<Enrollment>;
+  createEnrollment(userId: string, lectureId: string): Promise<Enrollment>;
   findAllByUserIdStatus(
     userId: string,
     status: EnrollmentStatus,
   ): Promise<Enrollment[]>;
-  updateEnrollmentWithIdStatus(
-    enrollmentId: string,
-    status: EnrollmentStatus,
-  ): Promise<Enrollment> | Promise<null>;
+  updateEnrollmentStatusWithUserIdLectureId({
+    userId,
+    lectureId,
+    status,
+  }: {
+    userId: string;
+    lectureId: string;
+    status: EnrollmentStatus;
+  }): Promise<Enrollment>;
 }

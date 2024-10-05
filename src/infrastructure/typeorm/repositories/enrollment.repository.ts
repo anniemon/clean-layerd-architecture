@@ -29,16 +29,24 @@ export class EnrollmentTypeOrmRepository
       .getMany();
   }
 
-  async createEnrollment(enrollment: Enrollment): Promise<Enrollment> {
-    return this.save(enrollment);
+  async createEnrollment(
+    userId: string,
+    lectureId: string,
+  ): Promise<Enrollment> {
+    return this.save({ userId, lectureId, status: EnrollmentStatus.ENROLLED });
   }
 
-  async updateEnrollmentWithIdStatus(
-    enrollmentId: string,
-    status: string,
-  ): Promise<Enrollment> {
+  async updateEnrollmentStatusWithUserIdLectureId({
+    userId,
+    lectureId,
+    status,
+  }: {
+    userId: string;
+    lectureId: string;
+    status: EnrollmentStatus;
+  }): Promise<Enrollment> {
     const enrollment = await this.findOne({
-      where: { id: enrollmentId },
+      where: { userId, lectureId },
     });
     if (!enrollment) {
       return null;
