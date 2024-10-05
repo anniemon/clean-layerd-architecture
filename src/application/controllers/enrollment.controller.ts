@@ -24,11 +24,11 @@ export class EnrollmentController {
   async enrollLecture(@Body() body: EnrollmentDTO) {
     const { userId, lectureId } = body;
 
-    const status = await this.enrollmentFacade.enrollLectureWithRetry(
+    const result = await this.enrollmentFacade.enrollLectureWithRetry(
       userId,
       lectureId,
     );
 
-    return { status };
+    return result;
   }
 }

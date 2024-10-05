@@ -29,7 +29,7 @@ export class EnrollmentFacade {
           userId,
           lectureId,
         );
-        return { status: enrollment.status };
+        return enrollment;
       } catch (error) {
         // 중복 수강 신청일 경우
         if (error.name === 'BadRequestException') {
