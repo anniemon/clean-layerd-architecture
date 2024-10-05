@@ -30,9 +30,6 @@ export class Lecture {
   @Column('integer', { default: 30 })
   slot: number;
 
-  @Column('boolean')
-  isAvailable: boolean;
-
   @VersionColumn() // 낙관적 락 제어용 버전 관리 필드
   version: number;
 
