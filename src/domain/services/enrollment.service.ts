@@ -46,7 +46,6 @@ export class EnrollmentService {
         userId,
         lectureId,
       );
-      console.log(newEnrollment, 'enrollment');
       return newEnrollment;
     } catch (error) {
       throw new BadRequestException('Duplicated enrollment');
