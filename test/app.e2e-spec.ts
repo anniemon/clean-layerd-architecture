@@ -3,7 +3,6 @@ import request from 'supertest';
 import { AppModule } from '../src/infrastructure/modules/app.module';
 import { INestApplication } from '@nestjs/common';
 import { fixtures } from '../src/infrastructure/typeorm/helper/fixtures';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
 describe('Enrollment', () => {
   let app: INestApplication;
@@ -16,6 +15,7 @@ describe('Enrollment', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    await app.listen(0);
     server = await app.getHttpServer();
   });
 
@@ -69,20 +69,25 @@ describe('Enrollment', () => {
     it('동시에 동일한 특강에 대해 40명이 신청했을 때, 30명만 성공해야 한다.', async () => {
       const lectureId = 2;
       const numberOfRequests = 40;
+      const successCount = 30;
+      const failedCount = 10;
 
-      for (let i = 0; i < numberOfRequests; i++) {
-        const result = await request(server)
+      const requests = Array.from({ length: numberOfRequests }, (_, i) => {
+        return request(server)
           .post('/enrollments')
           .send({
             lectureId,
             userId: i + 1,
           });
-        if (i < 30) {
-          expect(result.status).toBe(201);
-        } else {
-          expect(result.status).toBe(500);
-        }
-      }
+      });
+
+      const responses = await Promise.all(requests);
+      expect(responses.filter((res) => res.status === 201).length).toBe(
+        successCount,
+      );
+      expect(responses.filter((res) => res.status === 500).length).toBe(
+        failedCount,
+      );
     });
   });
 
